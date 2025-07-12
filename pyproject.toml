@@ -1,0 +1,83 @@
+# --- [1] 项目核心信息 ---
+# 定义你的项目名称、版本等。
+[project]
+name = "cs336_basics" 
+version = "0.1.0"
+description = "CS336 Assignment 1"
+requires-python = "==3.10"
+
+# --- [2] 运行时依赖 ---
+# 注意：这里我们只预先列出需要特殊处理的 PyTorch 包。
+# 你将使用 "uv pip install <package>" 命令来手动添加其他包 (如 numpy, tqdm)。
+dependencies = [
+    "torch>=2.6.0",
+    "torchvision>=0.21.0",
+    "torchaudio>=2.6.0",
+    "numpy",
+    "einops",
+    "tqdm",
+    "swanlab",
+    "jaxtyping",
+]
+
+# --- [3] 开发时依赖 ---
+# 这些工具只在开发时需要，比如测试和代码格式化。
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "ruff>=0.4.0",
+]
+
+
+# ===================================================================
+# 工具配置
+# ===================================================================
+
+# --- [4] PyTorch GPU 版本安装配置 ---
+# 这是最关键的部分，它告诉 uv 如何正确安装带 CUDA 的 PyTorch。
+
+# (4a) 定义一个新的、名为 "pytorch-cu121" 的包索引（软件商店）。
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126" # 指向 PyTorch 官方 CUDA 12.6 仓库
+explicit = true # 强制 uv 只能在这里找，找不到就报错，防止误装 CPU 版
+
+# (4b) 定义路由规则：告诉 uv 在安装特定包时，使用上面定义的特殊索引。
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cu126", marker = "sys_platform == 'linux' or sys_platform == 'win32'" }
+]
+torchvision = [
+    { index = "pytorch-cu126", marker = "sys_platform == 'linux' or sys_platform == 'win32'" }
+]
+torchaudio = [
+    { index = "pytorch-cu126", marker = "sys_platform == 'linux' or sys_platform == 'win32'" }
+]
+
+# --- [5] 全局 UV 配置 ---
+# 这个配置会影响所有【没有】在 [tool.uv.sources] 中被特殊指定的包。
+[tool.uv.pip]
+# 使用清华镜像作为默认下载源，极大地加速其他包（如 numpy）的安装。
+index-url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+
+# --- [6] Pytest 测试工具配置 ---
+[tool.pytest.ini_options]
+log_cli = true
+log_cli_level = "WARNING"
+addopts = "-s" # 方便在测试时看 print 输出
+
+# --- [7] Ruff 代码检查与格式化配置 ---
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"] # 启用 Flake8, isort 和 PyUpgrade 规则
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"
+
+# --- [8] 项目打包配置 ---
+# 告诉打包工具你的 Python 源代码在哪个文件夹下。
+[tool.setuptools.packages.find]
+include = ["cs336_basics"] # <-- 确保这个名字和你的 Python 包文件夹名一致

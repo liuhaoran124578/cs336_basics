@@ -1,0 +1,4 @@
+**/__pycache__/
+.venv/
+cs336_basics.egg-info/
+.ipynb_checkpoints/
